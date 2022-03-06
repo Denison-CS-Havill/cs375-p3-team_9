@@ -1,5 +1,6 @@
 // l2.c
 #include <math.h>
+#include <arpa/inet.h>
 // Interface to Layer 1 
 extern int l1_read(char* b);
 extern int l1_write(char b);
@@ -9,7 +10,7 @@ int l2_read(char* buffer, int maxlength)
 {
     int messageLength = 0;
     char header[2];
-    short* converting[2];
+    short converting[2];
 
 
     for (int i = 0; i<2; i++){
@@ -64,4 +65,13 @@ int l2_write(char* buffer, int length)
     }
 
     return length;
+}
+
+
+int main()
+{
+    char buffer[6] = {'H', 'e', 'l', 'l', 'o', '\0'};   
+    l2_write( buffer, 6);
+    l2_read( buffer, 25);
+    return 0;
 }
