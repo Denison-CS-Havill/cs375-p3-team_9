@@ -9,14 +9,17 @@ int l2_read(char* buffer, int maxlength)
 {
     int messageLength = 0;
     char header[2];
-    
+    short* converting[2];
+
+
     for (int i = 0; i<2; i++){
         if (l1_read(&header[i]) == 0){
             return -1;
         }
+        converting[i] = (short) header[i];
     }
-
-   messageLength = ((int) header[0]) * pow(2,8);
+    messageLength = header[1] + (header[0] * pow(2,8));
+    messageLength = htons(messageLength);
 
     if (messageLength > maxlength){
         return -1;
@@ -38,8 +41,15 @@ int l2_write(char* buffer, int length)
     }
 
     char header[2];
-    header[0] = (char) (length/pow(2,8));
-    header[1] = (char) (fmod(length, pow(2,8)));
+    short converting;
+    int convert;
+    convert = htons(length);
+    
+    converting = (short) (convert/pow(2,8));
+    header[0] = (char) converting;
+
+    converting = (short) (fmod(convert, pow(2,8)));
+    header[1] = (char) converting;
 
     for (int i = 0; i<2; i++){
         if (l1_write(header[i]) == 0){
