@@ -24,13 +24,25 @@ u_long checksum(char* buffer, int length){
 
 int l3_read(char* buffer, int maxlength)
 {
+    char header[4];
+    short convert;
+    u_long checksum = 0;
+    for(int i = 0; i<4; i++){
+        if (l2_read(&header[i]) == -1){
+            return -1;
+        }
+        convert = (short) header[i];
+        checksum += convert << (8*4*(3-i));
+    }
+    checksum = ntohl(checksum);
     
+
 }
 
 
 int l3_write(char* buffer, int length)
 {
-    u_long checksumOutput = checksum(buffer, length);
+    u_long checksumOutput = htonl(checksum(buffer, length));
 
     char header[4];
     u_short converting;
@@ -40,6 +52,18 @@ int l3_write(char* buffer, int length)
         converting = (short) convert_l;
         header[3-i] = (char) converting;
     }
+    
+    char* newBuffer;
 
+    newBuffer = malloc(strlen(header)+1+length);
+    strcpy(newBuffer, header);
+    strcat(newBuffer, buffer);
 
+    for (int i=0; i<strlen(newBuffer); i++){
+        if(l2_write(newBuffer[i]) == -1){
+            return -1;
+        }
+    }
+
+    return length;
 }
