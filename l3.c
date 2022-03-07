@@ -7,18 +7,12 @@ extern int l2_write(char* buffer, int length);
 u_long checksum(char* buffer, int length){
     register u_long sum = 0;
 
-    while (length--)
+     while(length--)
     {
-        u_short bufferi = (u_short) *buffer++;
-        sum += bufferi;
-        if (sum & 0xFFFF0000)
-        {
-            /* carry occurred, so wrap around */
-            sum &= 0xFFFF;
-            sum++;
-        }
-    }
-    return ~(sum & 0xFFFF);
+        sum += *buffer;
+        buffer++;
+    };
+    return ~(sum & 0xFF);
 }
 
 
