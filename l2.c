@@ -20,7 +20,7 @@ int l2_read(char* buffer, int maxlength)
         converting[i] = (short) header[i];
     }
     messageLength =(int) (header[1] + (header[0] <<8));
-    messageLength = htonl(messageLength);
+    messageLength = ntohl(messageLength);
     //printf("messageLength");
     if (messageLength > maxlength){
         return -1;
