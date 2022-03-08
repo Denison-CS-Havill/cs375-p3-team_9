@@ -15,15 +15,19 @@ unsigned char checksum(char* buffer, int length){
 
 int l3_read(char* buffer, int maxlength)
 {
-    
-    int messageLength = l2_read(buffer, maxlength);
+    char *messageWithHeader;
+    int messageLength = l2_read(messageWithHeader, maxlength);
     if ( (messageLength == -1)|(messageLength > maxlength) ){
         return -1;
     } 
 
-    char checksumOfMessage = checksum(buffer, messageLength) &= 0x7F ;
+    char checksumOfMessage = checksum(messageWithHeader, messageLength) &= 0x7F ;
 
     if (checksumOfMessage == 0){
+        for (int i = 1; i < messageLength; i++){
+            *(buffer+i-1) = messageWithHeader[i];
+        }
+        free(messageWithHeader);
         return messageLength;
     } else {
         return -1;
