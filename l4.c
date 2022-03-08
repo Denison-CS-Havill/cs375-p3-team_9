@@ -10,7 +10,25 @@ int l4_read(char* name, int* nameLength, char* value, int* valueLength)
     char buff[1000];
     int length = l3_read(buff, 1000);
     int i = 1;
-    while ( (buff[i]!=',') )
+    while(buff[i]!=','){
+        if (i >= nameLength){
+            return 0;
+        }
+        name[i-1] = buff[i];
+        i++;
+    }
+
+    i++;
+    int j = 0;
+    while(buff[i]!=')'){
+        if ( j >= valueLength){
+            return 0;
+        }
+        value[j] = buff[i];
+        i++;
+        j++;
+    }
+    return 1;
 }
 
 int l4_write(char* name, int nameLength, char* value, int valueLength)
