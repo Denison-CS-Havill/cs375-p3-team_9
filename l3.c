@@ -1,4 +1,7 @@
 // l3.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // Interface to Layer 2
 extern int l2_read(char* buffer, int maxlength);
@@ -15,21 +18,24 @@ unsigned char checksum(char* buffer, int length){
 
 int l3_read(char* buffer, int maxlength)
 {
-    char *messageWithHeader;
+    char messageWithHeader[maxlength];
     int messageLength = l2_read(messageWithHeader, maxlength);
     if ( (messageLength == -1)|(messageLength > maxlength) ){
         return -1;
     } 
 
-    char checksumOfMessage = checksum(messageWithHeader, messageLength) &= 0x7F ;
+    char cheksum = checksum(messageWithHeader, messageLength);
+    char checksumOfMessage = (cheksum & 0xFF) ;
 
     if (checksumOfMessage == 0){
         for (int i = 1; i < messageLength; i++){
             *(buffer+i-1) = messageWithHeader[i];
         }
-        free(messageWithHeader);
+        //free(messageWithHeader);
         return messageLength;
     } else {
+        //printf("checksum: ");
+        //printf("%s\n",messageWithHeader);
         return -1;
     }
 }
@@ -38,15 +44,13 @@ int l3_read(char* buffer, int maxlength)
 int l3_write(char* buffer, int length)
 {
     unsigned char checksumOutput = checksum(buffer, length);
-    checksumOutput = (char) ((-checksumOutput) & 0x7F);
+    checksumOutput = (char) ((-checksumOutput) & 0xFF);
 
-    char header[1];
-    header[0] = checksumOutput;
+    char header;
+    header = checksumOutput;
 
-    char* newBuffer;
-
-    newBuffer = malloc(strlen(header)+1+length);
-    strcpy(newBuffer, header);
+    char newBuffer[1+length];
+    newBuffer[0] =  header;
     strcat(newBuffer, buffer);
 
     if(l2_write(newBuffer, length+1) == -1){

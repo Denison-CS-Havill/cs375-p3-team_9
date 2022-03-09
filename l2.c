@@ -10,26 +10,32 @@ int l2_read(char* buffer, int maxlength)
 {
     int messageLength = 0;
     char header[2];
-    short converting[2];
+    short converting;
 
-
-    for (int i = 0; i<2; i++){
-        if (l1_read(&header[i]) == 0){
+    if (l1_read(&header[0]) == 0){
             return -1;
-        }
-        converting[i] = (short) header[i];
+    }else{
+        converting = header[0] - '0';
     }
-    messageLength =(int) (header[1] + (header[0] <<8));
-    messageLength = ntohl(messageLength);
-    //printf("messageLength");
+    converting = converting << 8;
+    if (l1_read(&header[1]) == 0){
+            return -1;
+    }else{
+        converting = converting + (header[1]-'0');
+    }
+    
+    messageLength = ntohs(converting);
+    
     if (messageLength > maxlength){
         return -1;
     }
 
     for (int i = 0; i<messageLength; i++){
+        
         if (l1_read(&buffer[i]) == 0){
             return -1;
         }
+
     }
     
     return messageLength;
@@ -41,26 +47,24 @@ int l2_write(char* buffer, int length)
         return -1;
     }
 
-    char header[2];
-    short converting;
-    int convert;
-    convert = htonl(length);
-    //printf("conver:%d",convert);
-
-    converting = (short) convert>>8;
-    header[0] = (char) converting;
-    //printf("%s",header[0]);
-
-    converting = (short) (fmod(convert, pow(2,8)));
-    header[1] = (char) converting;
-    //printf("%s",header[1]);
-
-    for (int i = 0; i<2; i++){
-        if (l1_write(header[i]) == 0){
+    char header_1,header_2;
+    short int converting;
+    short int convert;
+    convert = (short) length;
+    converting = htons(convert);
+    converting = converting>>8;
+    header_1 = converting+'0';
+    if (l1_write(header_1) == 0){
             return -1;
-        }
     }
-
+    
+    converting = htons(convert);
+    header_2 = converting+'0';
+    
+    if (l1_write(header_2) == 0){
+            return -1;
+    }
+    
     for (int i = 0; i<length; i++){
         if (l1_write(buffer[i]) == 0){
             return -1;
