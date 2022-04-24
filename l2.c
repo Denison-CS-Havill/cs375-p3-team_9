@@ -6,7 +6,7 @@ extern int l1_read(char* b);
 extern int l1_write(char b);
 
 
-int l2_read(char* buffer, int maxLength)
+int l2_read(char* buffer, int maxlength)
 {
     int messageLength = 0;
     char header[2];
@@ -22,7 +22,7 @@ int l2_read(char* buffer, int maxLength)
     messageLength = (int)ntohs(messageLengthPreConvert);
     
     
-    if (messageLength > maxLength){
+    if (messageLength > maxlength){
         return -1;
     }
 
