@@ -43,21 +43,13 @@ int l2_write(char* buffer, int length)
         return -1;
     }
 
-    char header_1,header_2;
-    short int converting;
-    short int convert;
-    convert = (short) length;
-    converting = htons(convert);
-    converting = converting>>8;
-    header_1 = converting+'0';
-    if (l1_write(header_1) == 0){
-            return -1;
-    }
-    
-    converting = htons(convert);
-    header_2 = converting+'0';
-    
-    if (l1_write(header_2) == 0){
+    char header[2];
+    uint16_t messageLengthPreConvert = htons((uint16_t)length);
+
+    memcpy(header, &messageLengthPreConvert, sizeof(uint16_t));
+   
+    for (int i = 0; i < 2; i++){
+        if (l1_write(header[i]) == 0){
             return -1;
     }
     
