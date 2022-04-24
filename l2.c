@@ -6,27 +6,23 @@ extern int l1_read(char* b);
 extern int l1_write(char b);
 
 
-int l2_read(char* buffer, int maxlength)
+int l2_read(char* buffer, int maxLength)
 {
     int messageLength = 0;
     char header[2];
-    short converting;
-
-    if (l1_read(&header[0]) == 0){
+    uint16_t messageLengthPreConvert;
+    
+    for (int i = 0; i < 2; i++){
+        if (l1_read(&header[i]) == 0){
             return -1;
-    }else{
-        converting = header[0] - '0';
-    }
-    converting = converting << 8;
-    if (l1_read(&header[1]) == 0){
-            return -1;
-    }else{
-        converting = converting + (header[1]-'0');
+        }
     }
     
-    messageLength = ntohs(converting);
+    memcpy(&messageLengthPreConvert, header, sizeof(uint16_t));
+    messageLength = (int)ntohs(messageLengthPreConvert);
     
-    if (messageLength > maxlength){
+    
+    if (messageLength > maxLength){
         return -1;
     }
 
