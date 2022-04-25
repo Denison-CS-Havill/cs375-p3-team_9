@@ -10,54 +10,49 @@ extern int l3_write(char* buffer, int length);
 
 int l4_read(char* name, int* nameLength, char* value, int* valueLength)
 {
-    char buff[250];
-    int length = l3_read(buff, 250);
+    int maxLength = 2 * sizeof(uint16_t) + *nameLength + *valueLength;
+    char buff[maxLength];
+    int length = l3_read(buff, maxLength);
+    
+    
     if (length == -1){
         return 0;
     }
-    //printf("length: ");
-    //printf("%d\n",length);
-    int i = 1;
-    while(buff[i]!=','){
-        if (i >= *nameLength){
-            //printf("namelength");
-            //printf("%d\n",i);
-            return 0;
-        }
-        *(name+i-1) = buff[i];
-        i++;
-    }
+    
+    uint16_t nameLengthPreConverting;
+    uint16_t valueLengthPreConverting;
+    
+    memcpy(&nameLengthPreConverting, buff, sizeof(uint16_t));
+    memcpy(&valueLengthPreConverting, buff + sizeof(uint16_t), sizeof(uint16_t));
 
-    i++;
-    int j = 0;
-    while(buff[i]!=')'){
-        if ( j >= *valueLength) 
-        {
-            // printf("valueLength");
-            // printf("%d\n",j);
-            return 0;
-        }
-        if (i>=length){
-            // printf("length");
-            // printf("%d\n",i);
-            return 0;
-        }
-        value[j] = buff[i];
-        i++;
-        j++;
-    }
+    *nameLength = (int)  ntohs(nameLengthPreConverting);
+    *valueLength = (int) ntohs(valueLengthPreConverting);
+
+    memcpy(name, buffer + 2 * sizeof(uint16_t), *nameLength);
+    memcpy(value, buffer + 2 * sizeof(uint16_t) + *nameLength, *valueLength);
+    
+    
     return 1;
 }
 
 int l4_write(char* name, int nameLength, char* value, int valueLength)
 {
-    char buff[nameLength+valueLength+3];
-    strcpy(buff,"(");
-    strcat(buff, name);
-    strcat(buff, ",");
-    strcat(buff, value);
-    strcat(buff,")");
-    if (l3_write(buff, nameLength+valueLength+3) ==-1){
+    
+    
+    char buff[2 * sizeof(uint16_t) + nameLength + valueLength];
+    int buffLength = 0;
+    
+    uint16_t nameLengthPostConverting = htons((uint16_t)nameLength);
+    uint16_t valueLengthPostConverting = htons((uint16_t)valueLength);
+
+    memcpy(buff, &nameLengthPostConverting, sizeof(uint16_t));
+    memcpy(buff + sizeof(uint16_t), &valueLengthPostConverting, sizeof(uint16_t));
+    memcpy(buff + 2 * sizeof(uint16_t), name, nameLength);
+    memcpy(buff + 2 * sizeof(uint16_t) + nameLength, value, valueLength);
+
+    buffLength = 2 * sizeof(uint16_t) + nameLength + valueLength;
+    
+    if (l3_write(buff, buffLength) == -1){
         return 0;
     }
 
